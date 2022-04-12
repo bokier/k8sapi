@@ -9,7 +9,7 @@ import (
 )
 
 //
-func GetPodsByDep(ns string, dep *v1.Deployment) []*Pod{
+func GetPodsByDep(ns string, dep *v1.Deployment) []*Pod {
 	ctx := context.Background()
 	ListOpt := metav1.ListOptions{
 		LabelSelector: GetLabels(dep.Spec.Selector.MatchLabels),
@@ -18,29 +18,31 @@ func GetPodsByDep(ns string, dep *v1.Deployment) []*Pod{
 	if err != nil {
 		panic(err.Error())
 	}
-	pods := make([]*Pod,len(list.Items))
-	for i, item := range list.Items {
+	pods := make([]*Pod, len(list.Items))
+	for i, pod := range list.Items {
 		pods[i] = &Pod{
-			Name: item.Name,
+			Name:       pod.Name,
+			Images:     GetImagesByPod(pod.Spec.Containers),
+			NodeName:   pod.Spec.NodeName,
+			CreateTime: pod.CreationTimestamp.Format("2006-01-02 15:04:05"),
 		}
 	}
 	return pods
 }
 
-
 // GetDeployment 使用 .AppsV1 获取命名空间详情
 func GetDeployment(ns string, name string) *Deployment {
 	ctx := context.Background()
 	getOpt := metav1.GetOptions{}
-	dep, err := lib.K8sClient.AppsV1().Deployments(ns).Get(ctx,name,getOpt)
+	dep, err := lib.K8sClient.AppsV1().Deployments(ns).Get(ctx, name, getOpt)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return &Deployment{
-		Name: dep.Name,
-		NameSpace: dep.Namespace,
-		Image: GetImages(*dep),
+		Name:       dep.Name,
+		NameSpace:  dep.Namespace,
+		Image:      GetImagesByDeployment(*dep),
 		CreateTime: dep.CreationTimestamp.Format("2006-01-02 15:04:05"),
-		Pods: GetPodsByDep(ns,dep),
+		Pods:       GetPodsByDep(ns, dep),
 	}
 }
