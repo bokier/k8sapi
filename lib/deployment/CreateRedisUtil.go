@@ -12,8 +12,8 @@ import (
 	"log"
 )
 
-// CreateDeployment 通过 yaml 文件创建 Deployment 副本
-func CreateDeployment() {
+// CreateRedisDeployment 通过 yaml 文件创建 Deployment 副本
+func CreateRedisDeployment() {
 	rdsDep := &v1.Deployment{}
 	b, _ := ioutil.ReadFile("yamls/redis.yaml")
 	rdsJson, _ := yaml.ToJSON(b)

@@ -39,5 +39,4 @@ func incrReplicas(c *gin.Context) {
 		panic(err.Error())
 	}
 	lib.Success("ok", c)
-
 }

@@ -44,5 +44,6 @@ func GetDeployment(ns string, name string) *Deployment {
 		Image:      GetImagesByDeployment(*dep),
 		CreateTime: dep.CreationTimestamp.Format("2006-01-02 15:04:05"),
 		Pods:       GetPodsByDep(ns, dep),
+		Replicas:   [3]int32{dep.Status.Replicas, dep.Status.AvailableReplicas, dep.Status.UnavailableReplicas},
 	}
 }
