@@ -12,20 +12,20 @@ import (
 	"log"
 )
 
+// CreateDeployment 通过 yaml 文件创建 Deployment 副本
 func CreateDeployment() {
 	rdsDep := &v1.Deployment{}
 	b, _ := ioutil.ReadFile("yamls/redis.yaml")
 	rdsJson, _ := yaml.ToJSON(b)
-	_ = json.Unmarshal(rdsJson,rdsDep)
+	_ = json.Unmarshal(rdsJson, rdsDep)
 
 	ctx := context.Background()
 	createOpt := metav1.CreateOptions{}
 	_, err := lib.K8sClient.AppsV1().Deployments("devops").
-		Create(ctx,rdsDep,createOpt)
+		Create(ctx, rdsDep, createOpt)
 
 	if err != nil {
 		log.Fatal("[error] find a err in Create redis Deployment")
 	}
 	fmt.Println("[info] create redis seccess")
 }
-
