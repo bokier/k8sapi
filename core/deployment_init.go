@@ -13,12 +13,39 @@ type DeploymentMap struct {
 	data sync.Map // 多线程操作，不使用原生的Map，使用sync.Map [key string][]*v1.Deployment, key = namespace
 }
 
+// Add 添加
 func (d *DeploymentMap) Add(dep *v1.Deployment) {
 	if list, ok := d.data.Load(dep.Namespace); ok {
 		list = append(list.([]*v1.Deployment), dep)
 		d.data.Store(dep.Namespace, list)
 	} else {
 		d.data.Store(dep.Namespace, []*v1.Deployment{dep})
+	}
+}
+
+// Update 更新
+func (d *DeploymentMap) Update(dep *v1.Deployment) error {
+	if list, ok := d.data.Load(dep.Namespace); ok {
+		for i, range_dep := range list.([]*v1.Deployment) {
+			if range_dep.Name == dep.Name {
+				list.([]*v1.Deployment)[i] = dep
+			}
+		}
+		return nil
+	}
+	return fmt.Errorf("deployment-%s not found", dep.Name)
+}
+
+// Delete 删除
+func (d *DeploymentMap) Delete(dep *v1.Deployment) {
+	if list, ok := d.data.Load(dep.Namespace); ok {
+		for i, range_dep := range list.([]*v1.Deployment) {
+			if range_dep.Name == dep.Name {
+				newList := append(list.([]*v1.Deployment)[:i], list.([]*v1.Deployment)[i+1:]...)
+				d.data.Store(dep.Namespace, newList)
+				break
+			}
+		}
 	}
 }
 
@@ -43,11 +70,16 @@ func (d *DepHandler) OnAdd(obj interface{}) {
 }
 
 func (d *DepHandler) OnUpdate(oldObj, newObj interface{}) {
-	if dep, ok := newObj.(*v1.Deployment); ok {
-		fmt.Println(dep.Name)
+	err := DepMap.Update(newObj.(*v1.Deployment))
+	if err != nil {
+		lib.CheckErr(err)
 	}
 }
-func (d *DepHandler) OnDelete(obj interface{}) {}
+func (d *DepHandler) OnDelete(obj interface{}) {
+	if d, ok := obj.(*v1.Deployment); ok {
+		DepMap.Delete(d)
+	}
+}
 
 func InitDeployment() {
 	fact := informers.NewSharedInformerFactory(lib.K8sClient, 0)

@@ -10,27 +10,48 @@
           <th style="width:30%">名称</th>
           <th style="width:20%">镜像</th>
           <th style="width:10%">Pod副本数</th>
-          <th style="width:10%">运行时长</th>
       </tr>
       </thead>
 
-      <tbody>
-      {{range .Data.DepList}}
-      <tr>
-        <td><input type="checkbox"/></td>
-        <td> - </td>
-          <td><a href="/deployments/{{.Name}}">{{.Name}}</a></td>
-        <td>{{.Image}}</td>
-        <td><span class="is-border">{{index .Replicas 0}} </span>
-            / <span class="is-border is-green">{{index .Replicas 1}}</span>
-            / <span class="is-border is-red">{{index .Replicas 2}}</span> </td>
-        <td> 创建时长 </td>
-      </tr>
-      {{ end }}
+      <tbody id="dep">
+        <tr>
+          <td><input type="checkbox"/></td>
+          <td> - </td>
+          <td><a href="/deployments/${Name}">${Name}</a></td>
+          <td>${Image}</td>
+          <td><span class="is-border">${Replicas[0]} </span>
+            / <span class="is-border is-green">${Replicas[1]}</span>
+            / <span class="is-border is-red">${Replicas[2]}</span> </td>
+        </tr>
       </tbody>
+
     </table>
   </div>
+    <script>
+        let tmpl=$("#dep").html();
+        $("#dep").html("");
+        $.template( "deployments", tmpl );
+        function loadDeployments() {
+            $.ajax({
+                type: "POST",
+                url: "/core/deployments",
+                dataType: "json",
+                success: function (data) {
+                    if (data.message === "Ok") {
+                        $("#dep").html("");
+                        $.tmpl("deployments", data.result )
+                            .appendTo( "#dep" );
+                    }
+                },
+                error: function (data) {
+                    alert(data.responseJSON.error)
+                }
+            })
+        }
+        loadDeployments()
+        window.setInterval("loadDeployments()",2000)
 
+    </script>
 </div>
 
 {{template "footer" .}}

@@ -9,6 +9,12 @@ import (
 
 func RegHandlers(r *gin.Engine) {
 	r.POST("/update/deployment/scale", incrReplicas)
+	r.POST("/core/deployments", ListAllDeployments)
+}
+
+func ListAllDeployments(c *gin.Context) {
+	ns := c.DefaultQuery("namespace", "devops")
+	c.JSON(200, gin.H{"message": "Ok", "result": ListAll(ns)})
 }
 
 // incrReplicas 只能 +1 或者 -1
