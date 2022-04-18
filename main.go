@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"k8sapi/core"
 	"k8sapi/lib"
 	"k8sapi/lib/deployment"
 	"net/http"
@@ -24,5 +25,6 @@ func main() {
 				SetTitle("deployment详细-"+c.Param("name")).
 				SetData("DepDetail", deployment.GetDeployment("devops", c.Param("name"))))
 	})
+	core.InitDeployment() // 初始化 Deployment 列表
 	r.Run(":18081")
 }
